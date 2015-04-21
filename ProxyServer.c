@@ -1,4 +1,10 @@
 
+/*----------------------------------------------
+ *	GROUP 1: Olawale Akinnawo, Sherin Mathew, Viivi Raina
+ *	Project 2: Proxy Server
+ *	CSCE 3530, 4/23/2015
+ *----------------------------------------------*/
+ 
 /* Multiple simultaneous clients handled by threads; */
 #include <unistd.h>
 #include <pthread.h>
@@ -9,15 +15,12 @@
 #include <sys/socket.h>	/* network system functions */
 #include <netinet/in.h>	/* protocol & struct definitions */
 
-
-
 #define BACKLOG	5
 #define BUF_SIZE	1024
 #define LISTEN_PORT	60005
 
 int threadCount = BACKLOG;
 void *client_handler(void *sock_desc);
-
 
 int main(int argc, char *argv[]){
     int status, *sock_tmp;
