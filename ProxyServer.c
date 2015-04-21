@@ -22,6 +22,11 @@
 int threadCount = BACKLOG;
 void *client_handler(void *sock_desc);
 
+
+/*----------------------------------------------
+ *	MAIN
+ *----------------------------------------------*/
+
 int main(int argc, char *argv[]){
     int status, *sock_tmp;
     pthread_t a_thread;
@@ -34,7 +39,7 @@ int main(int argc, char *argv[]){
     int addr_size;
     int reuseaddr = 1;
     
-    
+	// Create socket for listening
     sock_listen = socket(AF_INET, SOCK_STREAM, 0);
     if (sock_listen < 0) {
         perror("socket() failed");
@@ -46,14 +51,6 @@ int main(int argc, char *argv[]){
     addr_mine.sin_addr.s_addr = htonl(INADDR_ANY);
     addr_mine.sin_port = htons((unsigned short)LISTEN_PORT);
     
-    // /* Enable the socket to reuse the address */
-    // if (setsockopt(sock_listen, SOL_SOCKET, SO_REUSEADDR, &reuseaddr,
-    // 	sizeof(int)) == -1) {
-    //     perror("setsockopt");
-    // 	close(sock_listen);
-    //     exit(1);
-    // }
-    
     status = bind(sock_listen, (struct sockaddr *) &addr_mine,
                   sizeof (addr_mine));
     if (status < 0) {
@@ -62,6 +59,7 @@ int main(int argc, char *argv[]){
         exit(1);
     }
     
+	// Listen for connections
     status = listen(sock_listen, 5);
     if (status < 0) {
         perror("listen() failed");
@@ -70,12 +68,17 @@ int main(int argc, char *argv[]){
     }
     
     addr_size = sizeof(struct sockaddr_in);
+	
+	// Server feedback
+    printf("Group 1 proxy server witing for client...\n");
+	
     printf("waiting for a client\n");
     while(1) {
         if (threadCount < 1) {
             sleep(1);
         }
         
+		// Accept connection
         sock_aClient = accept(sock_listen, (struct sockaddr *) &addr_remote,
                               &addr_size);
         if (sock_aClient == -1){
@@ -83,6 +86,7 @@ int main(int argc, char *argv[]){
             exit(1);
         }
         
+		// Create thread
         printf("Got a connection from %s on port %d\n",
                inet_ntoa(addr_remote.sin_addr),
                htons(addr_remote.sin_port));
@@ -104,6 +108,11 @@ int main(int argc, char *argv[]){
     return 0;
 }
 
+
+/*----------------------------------------------
+ *	CLIENT HANDLER
+ *----------------------------------------------*/
+
 void *client_handler(void *sock_desc) {
     int msg_size;
     char buf[BUF_SIZE];
@@ -111,23 +120,37 @@ void *client_handler(void *sock_desc) {
     char buf_receive[BUF_SIZE], text[80],buf_send[BUF_SIZE];
     
     while ((msg_size = recv(sock, buf_receive, BUF_SIZE, 0)) > 0) {
-        
-        if (strcmp(buf_receive, "logout") == 0)
-            break;
-        
-        /* Server-side feedback */
-        printf("Received inum: %s \n",buf_receive);
-        
-        msg_size =strlen(buf_send);
-        msg_size=send(sock,buf_send,msg_size,0);
-        
-        
+		
+		//if (strcmp(buf_receive, "logout") == 0)
+			//    break;
+		
+		// FOLLOWING COMMENTS ARE FROM THE PYTHON CODE:
+		
+		// Extract the filename from the given message
+		
+		//if( file is in cache ) {
+			// Check whether the file exist in the cache
+			// ProxyServer finds a cache hit and generates a response message
+		//}
+		//else if( file is not in cache ) {
+			// Error handling for file not found in cache:
+			//if( file not found ) {
+				// Create a socket on the proxyserver
+				// Connect to the socket to port 80
+				// Create a temporary file on this socket and ask port 80 for the file requested by the client
+				// Read the response into buffer
+				// Create a new file in the cache for the requested file.
+				// Also send the response in the buffer to client socket and the corresponding file in the cache
+			//}
+			//else {
+				//HTTP response message for file not found
+			//}
+			// close client socket?
+		//}    
     }
-    
     
     close(sock);
     free(sock_desc);
     threadCount++;
-    // pthread_exit("Thank you for the CPU time");
 }
 
