@@ -1,4 +1,4 @@
-
+//129.120.151.96 //CSE03
 /*----------------------------------------------
  *	GROUP 1: Olawale Akinnawo, Sherin Mathew, Viivi Raina
  *	Project 2: Proxy Server
@@ -17,10 +17,11 @@
 
 #define BACKLOG	5
 #define BUF_SIZE	1024
-#define LISTEN_PORT	8888
+#define LISTEN_PORT	65001
 
 int threadCount = BACKLOG;
 void *client_handler(void *sock_desc);
+int blocked_websites(char *name);
 
 
 /*----------------------------------------------
@@ -117,13 +118,26 @@ void *client_handler(void *sock_desc) {
     int msg_size;
     char buf[BUF_SIZE];
     int sock = *(int*)sock_desc;
-    char buf_receive[BUF_SIZE], text[80],buf_send[BUF_SIZE];
+    char buffer[BUF_SIZE], text[80],buf_send[BUF_SIZE];
+    char * pch;
     
-    while ((msg_size = recv(sock, buf_receive, BUF_SIZE, 0)) > 0) {
-		
-		//if (strcmp(buf_receive, "logout") == 0)
-			//    break;
-		
+    while ((msg_size = recv(sock, buffer, BUF_SIZE, 0)) > 0) {
+        
+        //printf("The buffer message is: %s \nlast line\n", buffer);
+        pch = strtok (buffer,"GET /");
+        printf ("%s\n",pch);
+        
+        //checks to see of the website is on the blocked list
+        if (blocked_websites(char *pch)==0)
+        {
+            sprintf(buffer, "<html><title>Blocked website</title></html>\0");
+            send(sock, buffer, sizeof(buffer), 0);
+            close(sock);
+            free(sock_desc);
+            threadCount++;
+            return;
+        }
+        
 		// FOLLOWING COMMENTS ARE FROM THE PYTHON CODE:
 		
 		// Extract the filename from the given message
@@ -146,11 +160,46 @@ void *client_handler(void *sock_desc) {
 				//HTTP response message for file not found
 			//}
 			// close client socket?
-		//}    
+		//}
+        
+        
+        
+        
+        //strcpy(buffer, "POST /www.yahoo.com HTTP/1.0");
+        //msg_size =strlen(buffer);
+        //msg_size=send(sock,buffer,msg_size,0);
     }
     
     close(sock);
     free(sock_desc);
     threadCount++;
+}
+
+int blocked_websites(char *pch)
+{
+    FILE *fptr;
+    char *temp;
+    int value;
+
+    fptr=fopen("blocked.txt","r");
+    if(fptr==NULL){
+        printf("Error!");
+        exit(1);
+    }
+    
+    while(fscanf(fptr, "%s ",temp)!= EOF) {
+        value = strcmp(temp, pch);
+        if (value==0)
+        {
+            fclose(fptr);
+            return 0;
+        }
+    }
+    
+    
+    fclose(fptr);
+    return 1;
+    
+    
 }
 
