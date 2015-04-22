@@ -17,7 +17,7 @@
 
 #define BACKLOG	5
 #define BUF_SIZE	1024
-#define LISTEN_PORT	60005
+#define LISTEN_PORT	8888
 
 int threadCount = BACKLOG;
 void *client_handler(void *sock_desc);
